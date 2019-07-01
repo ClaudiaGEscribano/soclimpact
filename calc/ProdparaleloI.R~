@@ -1,0 +1,87 @@
+library(raster)
+library(maps)
+library(maptools)
+library(parallel)
+library(solaR)
+ 
+## Calculate  productivity using parallel function
+
+source('fooIProd.R')
+
+##########################################################################
+## 1. DATA
+#########################################################################
+
+## rutaDatos <- '/home/automata/claudia/SOCLIMPACT_pruebas/data/3h/CRE/EuroC/SMHI/MPI/125/CTRL/'
+
+## lS <- lapply(dir(path=rutaDatos, pattern="^CRE.*CTRL.*rsds\\.nc$"), FUN=function(x) paste(rutaDatos, x, sep=''))
+
+## listaS <- lapply(lS, stack)
+## SISS <- stack(unlist(listaS))
+
+## modelos en proyección regular.
+ 
+SISS <- brick("/home/automata/claudia/SOCLIMPACT_pruebas/data/3h/SICMAL/EuroC/SMHI/MPI/125/CTRL/SICMAL_EuroC_SMHI_MPI_CTRL_125_1970_2005_rsds.nc")
+#SISS <- SISS*3
+
+## pruebo 2 años
+##SISS <- SISS[[1:8768]]
+
+## lT <- lapply(dir(path=rutaDatos, pattern="^CRE.*CTRL.*tas\\.nc$"), FUN=function(x) paste(rutaDatos, x, sep=''))
+
+## listaT <- lapply(lT, stack)
+## Tas <- stack(unlist(listaT))
+ 
+Tas <- brick("/home/automata/claudia/SOCLIMPACT_pruebas/data/3h/SICMAL/EuroC/SMHI/MPI/125/CTRL/SICMAL_EuroC_SMHI_MPI_CTRL_125_1970_2005_tas.nc")
+Tas <- Tas-273.15
+
+##pruebo 2 años:
+##Tas <- Tas[[1:8768]]
+##Tas <- Tas-273.15
+
+## Time index
+tt <- seq(
+    from=as.POSIXct("1970-1-1 0:00", tz="UTZ"),
+    to=as.POSIXct("2005-12-31 21:00", tz="UTZ"),
+    by="3 hour")
+
+SISS <- setZ(SISS, tt)
+Tas <- setZ(Tas, tt)
+
+names(SISS) <- tt
+names(Tas) <- tt
+
+y <- init(SISS, v='y')
+
+########################################################################
+## 2. ProdCGPV Yearly productivity
+########################################################################
+
+## cell <- 200
+## x <- as.vector(SISS[200])
+## xx <- as.vector(Tas[200])
+## lat <- y[200]
+## data <- c(lat, x, xx)
+ 
+#modeTrk <-'fixed'
+ 
+library(zoo)
+#idxSISS <- getZ(SISS)
+
+yProdFixed <- fooParallel(SISS, Tas)
+ 
+## yProdFixed <- lapply(idLayers, FUN = function(idx)
+## {
+##    SISmm <- subset(SISS, idx)
+##    TASmm <- subset(Tas, idx)
+##    fooParallel(SISmm, TASmm)
+## })
+
+#################################################
+
+yProdFixed <- stack(yProdFixed)
+
+writeRaster(yProdFixed, filename='pruebadaily_3h_SICMAL_CTRL.grd', overwrite=TRUE)
+
+
+
