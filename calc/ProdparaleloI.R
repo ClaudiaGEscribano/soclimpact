@@ -1,6 +1,6 @@
 library(raster)
-library(maps)
-library(maptools)
+#library(maps)
+#library(maptools)
 library(parallel)
 library(solaR)
  
@@ -13,9 +13,9 @@ source('fooIProd.R')
 #########################################################################
 
 
-SISS <- brick("~/data/CRE_rsds_2000_2001.nc")
+SISS <- brick("../data/CRE_rsds_2000_2001.nc")
 
-Tas <- brick("~/data/CRE_tas_2000_2001.nc")
+Tas <- brick("../data/CRE_tas_2000_2001.nc")
 Tas <- Tas-273.15
 
 tt <- seq(
@@ -35,12 +35,13 @@ y <- init(SISS, v='y')
 ## 2. ProdCGPV Yearly productivity
 ########################################################################
 
-## cell <- 200
-## x <- as.vector(SISS[200])
-## xx <- as.vector(Tas[200])
-## lat <- y[200]
-## data <- c(lat, x, xx)
- 
+cell <- 200
+x <- as.vector(SISS[200])
+xx <- as.vector(Tas[200])
+lat <- y[200]
+data <- c(lat, x, xx)
+  
+
 #modeTrk <-'fixed'
  
 yProdFixed <- fooParallel(SISS, Tas)
