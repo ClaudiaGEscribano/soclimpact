@@ -19,8 +19,8 @@ Tas <- brick("../data/CRE_tas_2000_2001.nc")
 Tas <- Tas-273.15
 
 tt <- seq(
-    from=as.POSIXct("2000-1-1 0:00", tz="UTZ"),
-    to=as.POSIXct("2001-12-31 21:00", tz="UTZ"),
+    from=as.POSIXct("2000-1-1 0:00", tz="UTC"),
+    to=as.POSIXct("2001-12-31 21:00", tz="UTC"),
     by="3 hour")
 
 SISS <- setZ(SISS, tt)
@@ -36,17 +36,27 @@ y <- init(SISS, v='y')
 ########################################################################
 
 cell <- 200
-x <- as.vector(SISS[200])
-xx <- as.vector(Tas[200])
-lat <- y[200]
-data <- c(lat, x, xx)
+g0 <- as.vector(SISS[cell])
+ta <- as.vector(Tas[cell])
+lat <- y[cell]
   
+BDi <- zoo(data.frame(G0 = g0, Ta = ta),
+           order.by = tt)
 
-#modeTrk <-'fixed'
+Prod <- prodGCPV(lat = lat,
+                 modeRad = 'bdI',
+                 dataRad= list(lat = lat, file = BDi),
+                 keep.night=TRUE, modeTrk = 'fixed')
  
-yProdFixed <- fooParallel(SISS, Tas)
- 
+
+p <- as.zooI(Prod, complete = TRUE)
+
+xyplot(p[1:10, c("Bo0", "G0")], superpose = TRUE)
+
 #################################################
+## Parallel
+##################################################################
+yProdFixed <- fooParallel(SISS, Tas)
 
 yProdFixed <- stack(yProdFixed)
 
